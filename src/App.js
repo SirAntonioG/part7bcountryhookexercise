@@ -1,44 +1,49 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import FinderCountries from "./components/FinderCountries";
-import CountriesFound from "./components/CountriesFound";
+import React, { useState } from "react";
+import { useField, useCountry } from "./hooks";
 
-function App() {
-  const [countries, setCountries] = useState([]);
-  const [countryToFind, setCountryToFind] = useState("");
-  const [countriesFound, setCountriesFound] = useState([]);
+const Country = ({ country }) => {
+  if (!country) {
+    return null;
+  }
 
-  useEffect(() => {
-    axios.get("https://restcountries.com/v3.1/all").then((res) => {
-      setCountries(res.data);
-    });
-  }, []);
+  if (country.length === 0) {
+    return <div>not found...</div>;
+  }
 
-  const handlerFinderChange = (event) => {
-    setCountryToFind(event.target.value);
-    if (event.target.value === "") {
-      setCountriesFound([]);
-    } else {
-      const regexp = new RegExp(event.target.value, "i");
-      const countriesAux = countries.filter((item) =>
-        regexp.test(item.name.common)
-      );
-      setCountriesFound(countriesAux);
-    }
-  };
+  return (
+    <div>
+      <h3>{country[0].name.common}</h3>
+      <div>population {country[0].population}</div>
+      <div>capital {country[0].capital}</div>
+      <img
+        src={country[0].flags.png}
+        height="100"
+        alt={`flag of ${country[0].name.common}`}
+      />
+    </div>
+  );
+};
 
-  const buttonClick = (item) => {
-    setCountriesFound([item]);
+const App = () => {
+  const nameInput = useField("text");
+  const [name, setName] = useState("");
+  const country = useCountry(name);
+
+  const fetch = (e) => {
+    e.preventDefault();
+    setName(nameInput.value);
   };
 
   return (
-    <>
-      <FinderCountries value={countryToFind} onChange={handlerFinderChange} />
-      <div>
-        <CountriesFound countries={countriesFound} onClick={buttonClick} />
-      </div>
-    </>
+    <div>
+      <form onSubmit={fetch}>
+        <input {...nameInput} />
+        <button>find</button>
+      </form>
+
+      <Country country={country} />
+    </div>
   );
-}
+};
 
 export default App;
